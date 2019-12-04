@@ -65,7 +65,7 @@ func NewEventBuss(rabbit string, options ...Option) (*EventBuss, error) {
 		return nil, err
 	}
 	eb.rabbus = r
-	Register(eb.service)
+
 	return eb, nil
 }
 
