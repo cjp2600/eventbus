@@ -82,7 +82,7 @@ func (e *EventBuss) Push(event Event, object interface{}) {
 
 	go r.Run(ctx)
 
-	b, err := e.Marshal(object)
+	b, err := e.Marshal(&object)
 	if err != nil {
 		log.Error().Msgf("marshal event=%d failed: %s", event, err)
 	}
@@ -145,7 +145,7 @@ func (e *EventBuss) Listening(event Event, object interface{}, handler func(resp
 		m.Ack(false)
 		e.logger.Printf("Message was consumed")
 
-		err = e.Unmarshal(m.Body, object)
+		err = e.Unmarshal(m.Body, &object)
 		if err != nil {
 			log.Error().Msgf("event=%d Unmarshal(%T) failed: %s", event, object, err)
 		}
