@@ -1,9 +1,5 @@
 package eventbuss
 
-import (
-	"github.com/rafaeljesus/rabbus"
-)
-
 type Event int
 
 /*func Register(queue string) {
