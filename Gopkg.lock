@@ -2,14 +2,6 @@
 
 
 [[projects]]
-  digest = "1:573ca21d3669500ff845bdebee890eb7fc7f0f50c59f2132f2a0c6b03d85086a"
-  name = "github.com/golang/protobuf"
-  packages = ["proto"]
-  pruneopts = "UT"
-  revision = "6c65a5562fc06764971b7c5d05c76c75e84bdbf7"
-  version = "v1.3.2"
-
-[[projects]]
   digest = "1:85ade3b27822b3e792ef6d5bcf8c4c774db2a376c6519ffa17f23b8582607a22"
   name = "github.com/rafaeljesus/rabbus"
   packages = [
@@ -57,57 +49,6 @@
   pruneopts = "UT"
   revision = "edfb9018d2714e4ec54dbaba37dbfef2bdadf0e4"
 
-[[projects]]
-  digest = "1:bdbeee77ecd82dc2e9bdc6deab3739fb968d953f8660b5577c74585a119db40c"
-  name = "github.com/vmihailenco/msgpack"
-  packages = [
-    ".",
-    "codes",
-  ]
-  pruneopts = "UT"
-  revision = "cd92a145e6d2ce09e792f838dc0b669b680aea29"
-  version = "v4.1.1"
-
-[[projects]]
-  digest = "1:a6c5ab44d09b463220e70b89e20e55e182ba4f7d15144697fe8dfc449d553e73"
-  name = "github.com/vmihailenco/tagparser"
-  packages = [
-    ".",
-    "internal",
-    "internal/parser",
-  ]
-  pruneopts = "UT"
-  revision = "e4b6c8cf4f3d7bb572551d5a531a9f2068b2fd6e"
-  version = "v0.1.1"
-
-[[projects]]
-  branch = "master"
-  digest = "1:76ee51c3f468493aff39dbacc401e8831fbb765104cbf613b89bef01cf4bad70"
-  name = "golang.org/x/net"
-  packages = ["context"]
-  pruneopts = "UT"
-  revision = "5ee1b9f4859acd2e99987ef94ec7a58427c53bef"
-
-[[projects]]
-  digest = "1:f4d6f1de81abede35943b5f9d8106c9a4579d3ea5a19d0991be3055e3383254b"
-  name = "google.golang.org/appengine"
-  packages = [
-    ".",
-    "datastore",
-    "datastore/internal/cloudkey",
-    "datastore/internal/cloudpb",
-    "internal",
-    "internal/app_identity",
-    "internal/base",
-    "internal/datastore",
-    "internal/log",
-    "internal/modules",
-    "internal/remote_api",
-  ]
-  pruneopts = "UT"
-  revision = "971852bfffca25b069c31162ae8f247a3dba083b"
-  version = "v1.6.5"
-
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
@@ -115,7 +56,6 @@
     "github.com/rafaeljesus/rabbus",
     "github.com/rs/zerolog",
     "github.com/rs/zerolog/log",
-    "github.com/vmihailenco/msgpack",
   ]
   solver-name = "gps-cdcl"
   solver-version = 1

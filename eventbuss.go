@@ -2,13 +2,13 @@ package eventbuss
 
 import (
 	"context"
+	"encoding/json"
 	"os"
 	"time"
 
 	"github.com/rafaeljesus/rabbus"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
-	"github.com/vmihailenco/msgpack"
 )
 
 type EventBuss struct {
@@ -36,10 +36,10 @@ func NewEventBuss(rabbit string, options ...Option) (*EventBuss, error) {
 	}
 
 	eb.Marshal = func(v interface{}) ([]byte, error) {
-		return msgpack.Marshal(v)
+		return json.Marshal(v)
 	}
 	eb.Unmarshal = func(b []byte, v interface{}) error {
-		return msgpack.Unmarshal(b, v)
+		return json.Unmarshal(b, v)
 	}
 
 	for _, o := range options {
@@ -114,7 +114,7 @@ outer:
 	}
 }
 
-func (e *EventBuss) Listening(event Event, object interface{}, handler func(response Response) error) {
+func (e *EventBuss) Listening(event Event, handler func(object []byte) error) {
 	defer func(r *rabbus.Rabbus) {
 		if err := r.Close(); err != nil {
 			e.logger.Printf("failed to close rabbus connection %s", err)
@@ -145,15 +145,7 @@ func (e *EventBuss) Listening(event Event, object interface{}, handler func(resp
 		m.Ack(false)
 		e.logger.Printf("Message was consumed")
 
-		err = e.Unmarshal(m.Body, &object)
-		if err != nil {
-			log.Error().Msgf("event=%d Unmarshal(%T) failed: %s", event, object, err)
-		}
-
-		err := handler(Response{
-			Message: m,
-			Object:  object,
-		})
+		err := handler(m.Body)
 		if err != nil {
 			e.logger.Error().AnErr("handler error %s", err)
 		}
