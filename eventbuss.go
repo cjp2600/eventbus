@@ -18,6 +18,7 @@ type EventBuss struct {
 	verbose bool
 	logger  zerolog.Logger
 	rabbus  *rabbus.Rabbus
+	config  map[Event]rabbus.ListenConfig
 
 	// Processing / Post-processing methods
 	Marshal   func(interface{}) ([]byte, error)
@@ -55,6 +56,10 @@ func NewEventBuss(rabbit string, options ...Option) (*EventBuss, error) {
 		eb.service = "event-buss"
 	}
 
+	if eb.config == nil {
+		eb.config = make(map[Event]rabbus.ListenConfig)
+	}
+
 	r, err := eb.Connect()
 	if err != nil {
 		return nil, err
@@ -87,7 +92,7 @@ func (e *EventBuss) Push(event Event, object interface{}) {
 		log.Error().Msgf("marshal event=%d failed: %s", event, err)
 	}
 
-	config := GetEventConfig(event)
+	config := e.GetEventConfig(event)
 	msg := rabbus.Message{
 		Exchange:     config.Exchange,
 		Kind:         "direct",
@@ -114,7 +119,32 @@ outer:
 	}
 }
 
-func (e *EventBuss) Listening(event Event, handler func(object []byte) error) {
+func (e *EventBuss) GetEventConfig(event Event) rabbus.ListenConfig {
+	if v, ok := e.config[event]; ok {
+		return v
+	}
+	return rabbus.ListenConfig{}
+}
+
+func (e *EventBuss) Listening(steps map[Event]func(object []byte) error, async bool) {
+	var i int
+	for event, step := range steps {
+		if i > 0 {
+			go e.Emit(event, step)
+		}
+		i++
+	}
+	for event, step := range steps {
+		if !async {
+			e.Emit(event, step)
+		} else {
+			go e.Emit(event, step)
+		}
+		break
+	}
+}
+
+func (e *EventBuss) Emit(event Event, handler func(object []byte) error) {
 	defer func(r *rabbus.Rabbus) {
 		if err := r.Close(); err != nil {
 			e.logger.Printf("failed to close rabbus connection %s", err)
@@ -126,7 +156,7 @@ func (e *EventBuss) Listening(event Event, handler func(object []byte) error) {
 
 	go e.rabbus.Run(ctx)
 
-	messages, err := e.rabbus.Listen(GetEventConfig(event))
+	messages, err := e.rabbus.Listen(e.GetEventConfig(event))
 	if err != nil {
 		e.logger.Printf("Failed to create listener %s", err)
 		return
