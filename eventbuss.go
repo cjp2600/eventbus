@@ -69,6 +69,12 @@ func NewEventBuss(rabbit string, options ...Option) (*EventBuss, error) {
 	return eb, nil
 }
 
+func (e *EventBuss) MPush(objects map[Event]interface{}) {
+	for event, object := range objects {
+		e.Push(event, object)
+	}
+}
+
 func (e *EventBuss) Push(event Event, object interface{}) {
 	r, err := e.Connect()
 	if err != nil {
