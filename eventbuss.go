@@ -150,6 +150,47 @@ func (e *EventBuss) Listening(steps map[Event]func(object []byte) error, async b
 	}
 }
 
+func (e *EventBuss) EventStepsEmit(event Event, steps map[string]func(object []byte) error) {
+	defer func(r *rabbus.Rabbus) {
+		if err := r.Close(); err != nil {
+			e.logger.Printf("failed to close rabbus connection %s", err)
+		}
+	}(e.rabbus)
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	go e.rabbus.Run(ctx)
+
+	messages, err := e.rabbus.Listen(e.GetEventConfig(event))
+	if err != nil {
+		e.logger.Printf("Failed to create listener %s", err)
+		return
+	}
+	defer close(messages)
+
+	for {
+		e.logger.Printf("Listening for event %d messages...", event)
+
+		m, ok := <-messages
+		if !ok {
+			e.logger.Printf("Stop listening messages!")
+			break
+		}
+
+		if handler, ok := steps[m.Key]; ok {
+			m.Ack(false)
+			e.logger.Printf("Message was consumed")
+
+			err := handler(m.Body)
+			if err != nil {
+				e.logger.Error().AnErr("handler error %s", err)
+			}
+		}
+
+	}
+}
+
 func (e *EventBuss) Emit(event Event, handler func(object []byte) error) {
 	defer func(r *rabbus.Rabbus) {
 		if err := r.Close(); err != nil {
