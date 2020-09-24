@@ -2,7 +2,7 @@ package eventbuss
 
 import (
 	"context"
-	"encoding/json"
+	jsoniter "github.com/json-iterator/go"
 	"os"
 	"time"
 
@@ -12,13 +12,14 @@ import (
 )
 
 type EventBuss struct {
-	ctx     context.Context
-	rabbit  string
-	service string
-	verbose bool
-	logger  zerolog.Logger
-	rabbus  *rabbus.Rabbus
-	config  map[Event]rabbus.ListenConfig
+	ctx          context.Context
+	rabbit       string
+	service      string
+	verbose      bool
+	logger       zerolog.Logger
+	rabbus       *rabbus.Rabbus
+	config       map[Event]rabbus.ListenConfig
+	exchangeType string
 
 	// Processing / Post-processing methods
 	Marshal   func(interface{}) ([]byte, error)
@@ -32,9 +33,11 @@ type Response struct {
 
 func NewEventBuss(rabbit string, options ...Option) (*EventBuss, error) {
 	eb := &EventBuss{
-		rabbit: rabbit,
-		logger: zerolog.New(os.Stdout).With().Timestamp().Str("service", "eventbuss").Logger(),
+		rabbit:       rabbit,
+		exchangeType: rabbus.ExchangeFanout,
+		logger:       zerolog.New(os.Stdout).With().Timestamp().Str("service", "eventbuss").Logger(),
 	}
+	var json = jsoniter.ConfigCompatibleWithStandardLibrary
 
 	eb.Marshal = func(v interface{}) ([]byte, error) {
 		return json.Marshal(v)
@@ -101,7 +104,7 @@ func (e *EventBuss) Push(event Event, object interface{}) {
 	config := e.GetEventConfig(event)
 	msg := rabbus.Message{
 		Exchange:     config.Exchange,
-		Kind:         "direct",
+		Kind:         e.exchangeType,
 		Key:          config.Key,
 		Payload:      b,
 		DeliveryMode: rabbus.Persistent,

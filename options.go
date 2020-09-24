@@ -22,6 +22,13 @@ func Service(service string) Option {
 	}
 }
 
+func ExchangeType(t string) Option {
+	return func(r *EventBuss) error {
+		r.exchangeType = t
+		return nil
+	}
+}
+
 func SetConfig(config map[Event]rabbus.ListenConfig) Option {
 	return func(r *EventBuss) error {
 		r.config = config
